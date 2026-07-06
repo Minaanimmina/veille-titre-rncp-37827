@@ -1,0 +1,20 @@
+# Secrets
+.env
+*.key
+
+# N8N export local si tu utilises un dossier de travail
+n8n_exports_local/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Python (pour scripts futurs autour du dispositif)
+__pycache__/
+*.pyc
+.venv/
+.python-version
