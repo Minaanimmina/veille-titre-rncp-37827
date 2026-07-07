@@ -1,0 +1,223 @@
+{
+  "name": "Veille titre RNCP",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e38d2990-4ea4-4d1d-9587-829c5308578d",
+      "name": "Déclenchement hebdo"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { code: \"A1\", libelle: \"framework evaluation LLM\", requete: \"LLM evaluation framework benchmark 2026\" } },\n  { json: { code: \"A2\", libelle: \"securite prompts\", requete: \"prompt injection security LLM 2026\" } },\n  { json: { code: \"A3\", libelle: \"conformite IA et RGPD\", requete: \"EU AI Act compliance GDPR 2026\" } },\n  { json: { code: \"A4\", libelle: \"stockage objet et outillage datalake\", requete: \"object storage data lake open source 2026\" } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "bd610421-620a-48e2-a685-1d9e5668ee88",
+      "name": "Angles trimestre"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json.requete }}\",\n  \"search_depth\": \"advanced\",\n  \"max_results\": 5,\n  \"include_answer\": false,\n  \"include_raw_content\": false,\n  \"topic\": \"general\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "6664f026-3b57-4194-83bd-cfb4aa2f8a65",
+      "name": "Recherche Tavily",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WxERiQg4XqF8aIPw",
+          "name": "Tavily"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"llama-3.3-70b-versatile\",\n  temperature: 0,\n  response_format: { type: \"json_object\" },\n  messages: [\n    {\n      role: \"system\",\n      content: \"Tu es un evaluateur de sources de veille technique. Tu appliques strictement une grille de fiabilite en cinq criteres reprise du referentiel RNCP37827. Tu retournes exclusivement un JSON valide, sans texte autour. Bareme par critere, 'rempli', 'partiel', 'manque'. Une source est conservee si aucun critere n'est 'manque' ET si au plus deux criteres sont 'partiel'.\"\n    },\n    {\n      role: \"user\",\n      content: \"Angle de veille, \" + $json._angle_libelle + \". Requete, \" + $json._angle_requete + \". Sources candidates a evaluer, \" + JSON.stringify($json.results) + \". Pour chaque source, evalue les cinq criteres, 1 auteur identifie et qualifie, 2 contenu recent, 3 contenu sourcable, 4 document structure, 5 document accessible et confirmable. Retourne un JSON strict de la forme, {\\\"sources\\\":[{\\\"url\\\":\\\"...\\\",\\\"titre\\\":\\\"...\\\",\\\"criteres\\\":{\\\"c1\\\":\\\"rempli|partiel|manque\\\",\\\"c2\\\":\\\"...\\\",\\\"c3\\\":\\\"...\\\",\\\"c4\\\":\\\"...\\\",\\\"c5\\\":\\\"...\\\"},\\\"justifications\\\":{\\\"c1\\\":\\\"phrase si partiel ou manque, sinon vide\\\",\\\"c2\\\":\\\"...\\\",\\\"c3\\\":\\\"...\\\",\\\"c4\\\":\\\"...\\\",\\\"c5\\\":\\\"...\\\"},\\\"conservee\\\":true|false,\\\"raison_rejet\\\":\\\"si non conservee\\\",\\\"resume\\\":\\\"deux phrases\\\"}]}\"\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1020,
+        0
+      ],
+      "id": "e793ce5d-dfd7-4f66-80b0-c429314bf7c6",
+      "name": "Scoring Groq",
+      "credentials": {
+        "groqApi": {
+          "id": "WK9cgXMbX7qjpN3j",
+          "name": "Groq API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f51dbe6-908a-4505-8505-982c1d1ddb44",
+              "name": "=_angle_code",
+              "value": "={{ $('Angles trimestre').item.json.code }}",
+              "type": "string"
+            },
+            {
+              "id": "d7312b65-ba8a-468b-9ab2-66f25d0d5af3",
+              "name": "=_angle_libelle",
+              "value": "={{ $('Angles trimestre').item.json.libelle }}",
+              "type": "string"
+            },
+            {
+              "id": "f5086491-9c71-4513-a7cc-b19f3c58166b",
+              "name": "=_angle_requete",
+              "value": "={{ $('Angles trimestre').item.json.requete }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        0
+      ],
+      "id": "ae3cd7c0-24c8-4578-8cc4-2b1130a0eba7",
+      "name": "Préserver contexte"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Récupération de toutes les sorties Groq\nconst groqItems = $input.all();\n\n// Récupération des angles depuis le nœud Préserver contexte\nconst contexteItems = $('Préserver contexte').all();\n\n// Parsing des réponses Groq et jointure avec les angles\nconst angles = groqItems.map((item, index) => {\n  const raw = item.json.choices?.[0]?.message?.content ?? '{\"sources\":[]}';\n  let parsed;\n  try {\n    parsed = JSON.parse(raw);\n  } catch (e) {\n    parsed = { sources: [], erreur_parsing: raw };\n  }\n\n  const contexte = contexteItems[index]?.json ?? {};\n\n  return {\n    code: contexte._angle_code || 'inconnu',\n    libelle: contexte._angle_libelle || 'inconnu',\n    requete: contexte._angle_requete || 'inconnu',\n    sources: parsed.sources || [],\n    erreur: parsed.erreur_parsing || null\n  };\n});\n\n// Date et numéro de semaine ISO\nconst now = new Date();\nconst year = now.getFullYear();\nconst week = getISOWeek(now);\nconst semaine = `${year}-W${String(week).padStart(2, '0')}`;\nconst dateIso = now.toISOString().slice(0, 10);\n\nfunction getISOWeek(d) {\n  const target = new Date(d.valueOf());\n  const dayNr = (d.getDay() + 6) % 7;\n  target.setDate(target.getDate() - dayNr + 3);\n  const firstThursday = target.valueOf();\n  target.setMonth(0, 1);\n  if (target.getDay() !== 4) {\n    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);\n  }\n  return 1 + Math.ceil((firstThursday - target) / 604800000);\n}\n\n// Construction du markdown\nconst marqueur = { rempli: '✔', partiel: '~', manque: '✘' };\n\nlet md = `---\\n`;\nmd += `type: synthese_veille\\n`;\nmd += `semaine: ${semaine}\\n`;\nmd += `date: ${dateIso}\\n`;\nmd += `angles: [${angles.map(a => a.code).join(', ')}]\\n`;\nmd += `tags:\\n  - veille\\n  - synthese\\n---\\n\\n`;\nmd += `# Synthèse de veille, semaine ${semaine}\\n\\n`;\n\nconst rejets = [];\n\nfor (const angle of angles) {\n  md += `## Angle ${angle.code}, ${angle.libelle}\\n\\n`;\n  md += `Requête, \\`${angle.requete}\\`.\\n\\n`;\n\n  if (angle.erreur) {\n    md += `> Parsing en échec, contenu brut à examiner manuellement.\\n\\n`;\n    md += `\\`\\`\\`\\n${angle.erreur}\\n\\`\\`\\`\\n\\n`;\n    continue;\n  }\n\n  const conservees = angle.sources.filter(s => s.conservee);\n  const rejetees = angle.sources.filter(s => !s.conservee);\n\n  if (conservees.length === 0) {\n    md += `Aucune source conservée pour cet angle cette semaine.\\n\\n`;\n  } else {\n    for (const s of conservees) {\n      md += `### ${s.titre}\\n\\n`;\n      md += `- Lien, ${s.url}\\n`;\n      md += `- Fiabilité, `;\n      md += `1${marqueur[s.criteres.c1]} `;\n      md += `2${marqueur[s.criteres.c2]} `;\n      md += `3${marqueur[s.criteres.c3]} `;\n      md += `4${marqueur[s.criteres.c4]} `;\n      md += `5${marqueur[s.criteres.c5]}\\n`;\n      const just = Object.entries(s.justifications || {})\n        .filter(([_, v]) => v && v.trim() !== '')\n        .map(([k, v]) => `  - ${k}, ${v}`);\n      if (just.length > 0) {\n        md += `- Justifications,\\n${just.join('\\n')}\\n`;\n      }\n      md += `- Résumé, ${s.resume}\\n\\n`;\n    }\n  }\n\n  for (const s of rejetees) {\n    rejets.push({ url: s.url, angle: angle.code, raison: s.raison_rejet || 'non précisé' });\n  }\n}\n\nif (rejets.length > 0) {\n  md += `## Sources écartées\\n\\n`;\n  for (const r of rejets) {\n    md += `- ${r.url}, angle ${r.angle}, ${r.raison}\\n`;\n  }\n  md += '\\n';\n}\n\n// Nom du fichier\nconst nomFichier = `${semaine}.md`;\n\nreturn [{\n  json: { nomFichier, semaine },\n  binary: {\n    data: {\n      data: Buffer.from(md, 'utf-8').toString('base64'),\n      mimeType: 'text/markdown',\n      fileName: nomFichier\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        0
+      ],
+      "id": "0bf70d9a-e8b8-4bb1-a222-9b6015c0f823",
+      "name": "Construire synthèse"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ],
+      "id": "983e4be2-a1d1-405a-b246-3fd612069c75",
+      "name": "Wait",
+      "webhookId": "1b3753a1-a553-4a2d-9e4f-02756d118ef7"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Déclenchement hebdo": {
+      "main": [
+        [
+          {
+            "node": "Angles trimestre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Angles trimestre": {
+      "main": [
+        [
+          {
+            "node": "Recherche Tavily",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recherche Tavily": {
+      "main": [
+        [
+          {
+            "node": "Préserver contexte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scoring Groq": {
+      "main": [
+        [
+          {
+            "node": "Construire synthèse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préserver contexte": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Scoring Groq",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b727ccb5-5fc1-4f57-9a6e-8aafa3d0b395",
+  "meta": {
+    "instanceId": "fcc9b5f7edda914eb52a4f52d0052235e7147fbf46a40020b051efabe20d32f1"
+  },
+  "id": "AHgZbpZ6qCg4Wetg",
+  "tags": []
+}
