@@ -99,6 +99,8 @@ Les exports JSON des workflows sont dans le dossier `workflows/`. Depuis l'inter
 
 Le workflow principal est déclenché manuellement au moment du créneau hebdomadaire de veille. Depuis l'interface N8N, ouvrir le workflow, cliquer sur `Execute Workflow`. La synthèse est écrite dans le vault, elle est immédiatement disponible dans Obsidian.
 
+Le prompt système Groq utilisé par le workflow est versionné dans `prompts/scoring-groq-v1.md`. Toute modification du prompt donne lieu à un nouveau fichier `prompts/scoring-groq-vX.md` et à une mise à jour du workflow pour pointer vers la nouvelle version.
+
 ## Sauvegarde et restauration
 
 Les données persistantes de N8N (workflows, credentials chiffrés, historique d'exécution) vivent dans le volume Docker nommé `veille-n8n-data`. Ce volume n'est pas dans le dépôt Git, il faut le sauvegarder séparément.
