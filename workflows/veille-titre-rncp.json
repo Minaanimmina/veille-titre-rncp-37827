@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return [\n  { json: { code: \"A1\", libelle: \"framework evaluation LLM\", requete: \"LLM evaluation framework benchmark 2026\" } },\n  { json: { code: \"A2\", libelle: \"securite prompts\", requete: \"prompt injection security LLM 2026\" } },\n  { json: { code: \"A3\", libelle: \"conformite IA et RGPD\", requete: \"EU AI Act compliance GDPR 2026\" } },\n  { json: { code: \"A4\", libelle: \"stockage objet et outillage datalake\", requete: \"object storage data lake open source 2026\" } }\n];"
+        "jsCode": "return [\n  { json: { code: \"A1\", libelle: \"framework evaluation LLM\", requete: \"LLM evaluation framework benchmark 2026\", include_domains: [] } },\n  { json: { code: \"A2\", libelle: \"securite prompts\", requete: \"prompt injection benchmark MCP security evaluation LLM\", include_domains: [] } },\n  { json: { code: \"A3\", libelle: \"conformite IA et RGPD\", requete: \"EU AI Act GDPR guidance official\", include_domains: [\"europa.eu\", \"edpb.europa.eu\", \"cnil.fr\", \"digital-strategy.ec.europa.eu\"] } },\n  { json: { code: \"A4\", libelle: \"stockage objet et outillage datalake\", requete: \"object storage data lake open source 2026\", include_domains: [] } }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -33,7 +33,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"query\": \"{{ $json.requete }}\",\n  \"search_depth\": \"advanced\",\n  \"max_results\": 5,\n  \"include_answer\": false,\n  \"include_raw_content\": false,\n  \"topic\": \"general\"\n}",
+        "jsonBody": "={\n  \"query\": \"{{ $json.requete }}\",\n  \"search_depth\": \"advanced\",\n  \"max_results\": 5,\n  \"include_answer\": false,\n  \"include_raw_content\": false,\n  \"topic\": \"general\",\n  \"include_domains\": {{ JSON.stringify($json.include_domains || []) }}\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
