@@ -98,7 +98,7 @@ Les exports JSON des workflows sont dans le dossier `workflows/`. Depuis l'inter
 
 Le workflow principal est déclenché manuellement au moment du créneau hebdomadaire de veille. Depuis l'interface N8N, ouvrir le workflow, cliquer sur `Execute Workflow`. L'exécution dure un peu plus de deux minutes, du fait de l'espacement des appels Groq. Une fois l'exécution terminée, ouvrir la sortie du nœud `Construire synthèse` et s'en servir pour rédiger la synthèse hebdomadaire dans le vault.
 
-Le prompt système Groq utilisé par le workflow est versionné dans `prompts/scoring-groq-v1.md`. Toute modification du prompt donne lieu à un nouveau fichier `prompts/scoring-groq-vX.md` et à une mise à jour du workflow pour pointer vers la nouvelle version.
+Le prompt système Groq utilisé par le workflow est versionné dans `prompts/scoring-groq-v2.md`. Toute modification du prompt donne lieu à un nouveau fichier `prompts/scoring-groq-vX.md` et à une mise à jour du workflow pour pointer vers la nouvelle version.
 
 ## Sauvegarde et restauration
 
