@@ -41,6 +41,6 @@ Un objet JSON avec une clé `sources`, tableau d'objets, un par source évaluée
 
 ## 2026-10-06, alignement sur le nœud en service
 
-- Le texte en service dans le nœud Scoring Groq depuis le 2026-07-20 n'était pas versionné. Il l'est désormais dans ce fichier, v1 conserve le texte de mise en service du 2026-07-07.
+- Le texte en service dans le nœud Scoring Groq depuis le 2026-07-20 n'était pas versionné. Il l'est désormais dans ce fichier, v1 conserve le texte initial.
 - Le modèle passe de `llama-3.3-70b-versatile` à `openai/gpt-oss-120b`, suite à l'arrêt du premier par Groq le 2026-08-16.
 - Le nœud Wait est remplacé par l'option de traitement par lots du nœud Scoring Groq, un élément par lot et 65 000 ms entre deux appels, du fait de la limite de 8 000 tokens par minute du palier gratuit.
