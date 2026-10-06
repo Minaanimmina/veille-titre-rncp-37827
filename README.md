@@ -3,7 +3,7 @@
 ![N8N](https://img.shields.io/badge/n8n-1.72.1-EA4B71?logo=n8n&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
 ![Tavily](https://img.shields.io/badge/Tavily-recherche%20web-6E56CF)
-![Groq](https://img.shields.io/badge/Groq-Llama%203.3%2070B-F55036)
+![Groq](https://img.shields.io/badge/Groq-gpt--oss--120b-F55036)
 ![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?logo=conventionalcommits&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -24,10 +24,22 @@ Ce dépôt contient les artefacts techniques du dispositif de veille du projet d
 
 Les dossiers `workflows/` et `prompts/`, ainsi que le fichier `journal-angles.md`, sont créés au fil de l'eau, ils apparaissent à mesure que le dispositif se remplit.
 
+## Fonctionnement de la chaîne
+
+Le workflow principal, `workflows/veille-titre-rncp.json`, enchaîne les étapes suivantes.
+
+1. Le nœud `Angles trimestre` émet un élément par angle de veille actif, avec son code, son libellé et sa requête. Les angles en vigueur et leur historique sont tracés dans `journal-angles.md`.
+2. Le nœud `Recherche Tavily` lance la requête de chaque angle et récupère jusqu'à cinq résultats, sans le contenu brut des pages.
+3. Le nœud `Préserver contexte` rattache à chaque lot de résultats le code, le libellé et la requête de son angle.
+4. Le nœud `Scoring Groq` soumet les résultats agrégés de chaque angle au modèle `openai/gpt-oss-120b`, qui évalue chaque source sur les cinq critères de fiabilité et décide de la conserver ou de l'écarter. Un appel est fait par angle. Les appels sont espacés d'un peu plus d'une minute, 65 000 ms, par l'option de traitement par lots du nœud, pour rester sous la limite de 8 000 tokens par minute du palier gratuit Groq.
+5. Le nœud `Construire synthèse` met en forme les évaluations en un document markdown, sources conservées par angle puis sources écartées, disponible dans la sortie du nœud.
+
+Le workflow n'écrit aucun fichier. La synthèse hebdomadaire est rédigée manuellement à partir de la sortie du dernier nœud.
+
 ## Prérequis
 
 - Docker Engine avec le plugin compose, ou Docker Desktop. Version minimale conseillée, Docker 24.
-- Un vault Obsidian existant, avec un dossier de destination des synthèses prêt à recevoir des écritures.
+- Un vault Obsidian existant, dans lequel les synthèses hebdomadaires sont rédigées.
 - Un compte Tavily, formule gratuite suffisante, 1000 requêtes par mois.
 - Un compte Groq dédié au projet AFI, séparé de tout autre compte personnel.
 
@@ -42,12 +54,9 @@ cd veille-dispositif-afi
 
 ### 2. Générer les secrets
 
-Deux valeurs sont à générer, elles sont utilisées dans le fichier `.env`.
+Une valeur est à générer, elle est utilisée dans le fichier `.env`.
 
 ```bash
-# Mot de passe de l'authentification basic N8N
-openssl rand -base64 24
-
 # Cle de chiffrement des credentials N8N, a conserver precieusement
 openssl rand -hex 32
 ```
@@ -60,22 +69,12 @@ La clé de chiffrement N8N est particulièrement sensible. Si elle est perdue, l
 cp .env.example .env
 ```
 
-Éditer `.env` et renseigner les quatre variables.
+Éditer `.env` et renseigner les deux variables.
 
-- `N8N_BASIC_AUTH_USER`, identifiant de connexion à l'interface N8N.
-- `N8N_BASIC_AUTH_PASSWORD`, mot de passe généré à l'étape précédente.
 - `N8N_ENCRYPTION_KEY`, clé de chiffrement générée à l'étape précédente.
 - `OBSIDIAN_VAULT_PATH`, chemin absolu vers la racine du vault Obsidian sur la machine hôte.
 
-### 4. Vérifier le dossier de destination dans le vault
-
-Le workflow de veille écrit ses synthèses dans un sous-dossier hebdomadaire du vault. Le dossier parent doit exister avant le premier démarrage.
-
-```bash
-mkdir -p "$OBSIDIAN_VAULT_PATH/Nom_du_dossier"
-```
-
-### 5. Démarrer le conteneur
+### 4. Démarrer le conteneur
 
 ```bash
 docker compose up -d
@@ -84,20 +83,20 @@ docker compose logs -f n8n
 
 Attendre le message indiquant que N8N est disponible sur le port 5678, puis interrompre le suivi des logs par Ctrl+C, le conteneur continue de tourner en arrière-plan.
 
-### 6. Configurer N8N via l'interface web
+### 5. Configurer N8N via l'interface web
 
-Ouvrir un navigateur sur `http://localhost:5678`. À la première connexion, N8N demande de créer un compte propriétaire, dissocié de l'authentification basic. Une fois connecté, aller dans `Credentials` et créer deux entrées.
+Ouvrir un navigateur sur `http://localhost:5678`. À la première connexion, N8N demande de créer un compte propriétaire. Une fois connecté, aller dans `Credentials` et créer deux entrées.
 
 - Credential Tavily, avec la clé API récupérée sur `app.tavily.com`.
 - Credential Groq, avec la clé API récupérée sur `console.groq.com`, compte AFI dédié.
 
-### 7. Importer les workflows
+### 6. Importer les workflows
 
 Les exports JSON des workflows sont dans le dossier `workflows/`. Depuis l'interface N8N, menu `Workflows`, bouton `Import from File`, sélectionner le workflow à importer, puis attacher les credentials Tavily et Groq aux nœuds correspondants.
 
 ## Utilisation courante
 
-Le workflow principal est déclenché manuellement au moment du créneau hebdomadaire de veille. Depuis l'interface N8N, ouvrir le workflow, cliquer sur `Execute Workflow`. La synthèse est écrite dans le vault, elle est immédiatement disponible dans Obsidian.
+Le workflow principal est déclenché manuellement au moment du créneau hebdomadaire de veille. Depuis l'interface N8N, ouvrir le workflow, cliquer sur `Execute Workflow`. L'exécution dure un peu plus de deux minutes, du fait de l'espacement des appels Groq. Une fois l'exécution terminée, ouvrir la sortie du nœud `Construire synthèse` et s'en servir pour rédiger la synthèse hebdomadaire dans le vault.
 
 Le prompt système Groq utilisé par le workflow est versionné dans `prompts/scoring-groq-v1.md`. Toute modification du prompt donne lieu à un nouveau fichier `prompts/scoring-groq-vX.md` et à une mise à jour du workflow pour pointer vers la nouvelle version.
 

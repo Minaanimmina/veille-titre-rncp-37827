@@ -18,3 +18,5 @@ __pycache__/
 *.pyc
 .venv/
 .python-version
+# Sauvegardes locales du volume N8N
+n8n-data-*.tar.gz
