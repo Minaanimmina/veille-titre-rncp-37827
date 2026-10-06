@@ -31,3 +31,10 @@ Motif A3, l'ancienne formulation ne remontait que des synthèses de cabinets de 
 Note sur le filtre A3, le domaine europa.eu inclut l'ensemble de ses sous-domaines, le périmètre réel est donc plus large que les trois sous-domaines listés. Un angle A3 silencieux une semaine, faute de publication institutionnelle récente dans le périmètre, est un signal attendu et non un dysfonctionnement.
 
 Angles A1 et A4 inchangés.
+
+## 2026-10-06, rotation des angles et reprise du dispositif
+
+- A4, stockage objet et outillage datalake, fermé. Le stockage objet et le datalake sont hors de la pile retenue, l'angle n'alimente plus aucune décision.
+- A1 requalifié, de framework d'évaluation LLM en comparatif de modèles. Nouvelle requête, `function calling benchmark open-weight LLM 2026`. Le projet doit retenir un modèle à appel de fonctions parmi ceux d'un service d'inférence hébergé en Europe, l'angle suit désormais les comparatifs de cette capacité.
+- A2 et A3 inchangés.
+- Cette rotation tient lieu de la rotation trimestrielle prévue le 1er octobre, non tenue pendant l'interruption du dispositif entre la mi-août et le début d'octobre.
