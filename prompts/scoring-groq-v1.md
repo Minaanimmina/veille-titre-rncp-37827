@@ -4,14 +4,14 @@
 
 - Version, v1
 - Date de mise en service, 2026-07-06
-- Modèle cible, `llama-3.3-70b-versatile` (Groq)
+- Modèle cible, `openai/gpt-oss-120b` (Groq), depuis le 2026-10-06, `llama-3.3-70b-versatile` auparavant
 - Paramètres d'appel, `temperature: 0`, `response_format: { type: "json_object" }`
 - Usage, scoring des sources candidates issues de Tavily selon la grille de fiabilité en cinq critères
 
 ## Prompt système
 
 ```text
-Tu es un evaluateur de sources de veille. Applique strictement la grille en cinq criteres, 1 auteur qualifie, 2 recent, 3 sourcable, 4 structure, 5 accessible. Barème, rempli, partiel, manque. Une source est conservee si aucun critere n'est manque et au plus deux sont partiels. Retourne uniquement le JSON demande.
+Tu es un evaluateur de sources de veille technique. Tu appliques strictement une grille de fiabilite en cinq criteres reprise du referentiel RNCP37827. Tu retournes exclusivement un JSON valide, sans texte autour. Bareme par critere, 'rempli', 'partiel', 'manque'. Une source est conservee si aucun critere n'est 'manque' ET si au plus deux criteres sont 'partiel'.
 ```
 
 ## Prompt utilisateur, gabarit
@@ -19,7 +19,7 @@ Tu es un evaluateur de sources de veille. Applique strictement la grille en cinq
 Le prompt utilisateur est construit dynamiquement par le workflow N8N. Les variables entre chevrons sont substituées à l'exécution par le contenu produit par les nœuds amont.
 
 ```json
-Angle de veille, <libelle_angle>. Requete, <requete_tavily>. Sources candidates a evaluer, <json_stringify_des_resultats_tavily>. Pour chaque source, evalue les cinq criteres, 1 auteur identifie et qualifie, 2 contenu recent, 3 contenu sourcable, 4 document structure, 5 document accessible et confirmable. Retourne un JSON strict de la forme, {"sources":[{"url":"...","titre":"...","criteres":{"c1":"rempli|partiel|manque","c2":"...","c3":"...","c4":"...","c5":"..."},"justifications":{"c1":"phrase si partiel ou manque, sinon vide","c2":"...","c3":"...","c4":"...","c5":"..."},"conservee":true|false,"raison_rejet":"si non conservee","resume":"deux phrases"}]}
+Angle de veille, <$json._angle_libelle>. Requete, <$json._angle_requete>. Sources candidates a evaluer, <JSON.stringify($json.results)>. Pour chaque source, evalue les cinq criteres, 1 auteur identifie et qualifie, 2 contenu recent, 3 contenu sourcable, 4 document structure, 5 document accessible et confirmable. Retourne un JSON strict de la forme, {"sources":[{"url":"...","titre":"...","criteres":{"c1":"rempli|partiel|manque","c2":"...","c3":"...","c4":"...","c5":"..."},"justifications":{"c1":"phrase si partiel ou manque, sinon vide","c2":"...","c3":"...","c4":"...","c5":"..."},"conservee":true|false,"raison_rejet":"si non conservee","resume":"deux phrases"}]}
 ```
 
 ## Format de sortie attendu
@@ -37,6 +37,12 @@ Un objet JSON avec une clé `sources`, tableau d'objets, un par source évaluée
 ## Historique des versions
 
 - v1, 2026-07-06, version initiale mise en service pour la première trace hebdomadaire.
+
+## 2026-10-06, alignement sur le nœud en service
+
+- Le texte versionné jusqu'ici dans ce fichier différait de celui en service dans le nœud Scoring Groq depuis le 2026-07-20. C'est désormais ce dernier qui fait foi, le message système et le gabarit du message utilisateur ci-dessus sont recopiés à l'identique du nœud.
+- Le modèle passe de `llama-3.3-70b-versatile` à `openai/gpt-oss-120b`, suite à l'arrêt du premier par Groq le 2026-08-16.
+- Le nœud Wait est remplacé par l'option de traitement par lots du nœud Scoring Groq, un élément par lot et 65 000 ms entre deux appels, du fait de la limite de 8 000 tokens par minute du palier gratuit.
 
 ## Notes de conception
 

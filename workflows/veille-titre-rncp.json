@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return [\n  { json: { code: \"A1\", libelle: \"framework evaluation LLM\", requete: \"LLM evaluation framework benchmark 2026\", include_domains: [] } },\n  { json: { code: \"A2\", libelle: \"securite prompts\", requete: \"prompt injection benchmark MCP security evaluation LLM\", include_domains: [] } },\n  { json: { code: \"A3\", libelle: \"conformite IA et RGPD\", requete: \"EU AI Act GDPR guidance official\", include_domains: [\"europa.eu\", \"edpb.europa.eu\", \"cnil.fr\", \"digital-strategy.ec.europa.eu\"] } },\n  { json: { code: \"A4\", libelle: \"stockage objet et outillage datalake\", requete: \"object storage data lake open source 2026\", include_domains: [] } }\n];"
+        "jsCode": "return [\n  { json: { code: \"A1\", libelle: \"comparatif de modeles\", requete: \"function calling benchmark open-weight LLM 2026\", include_domains: [] } },\n  { json: { code: \"A2\", libelle: \"securite prompts\", requete: \"prompt injection benchmark MCP security evaluation LLM\", include_domains: [] } },\n  { json: { code: \"A3\", libelle: \"conformite IA et RGPD\", requete: \"EU AI Act GDPR guidance official\", include_domains: [\"europa.eu\", \"edpb.europa.eu\", \"cnil.fr\", \"digital-strategy.ec.europa.eu\"] } }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -59,13 +59,20 @@
         "nodeCredentialType": "groqApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"llama-3.3-70b-versatile\",\n  temperature: 0,\n  response_format: { type: \"json_object\" },\n  messages: [\n    {\n      role: \"system\",\n      content: \"Tu es un evaluateur de sources de veille technique. Tu appliques strictement une grille de fiabilite en cinq criteres reprise du referentiel RNCP37827. Tu retournes exclusivement un JSON valide, sans texte autour. Bareme par critere, 'rempli', 'partiel', 'manque'. Une source est conservee si aucun critere n'est 'manque' ET si au plus deux criteres sont 'partiel'.\"\n    },\n    {\n      role: \"user\",\n      content: \"Angle de veille, \" + $json._angle_libelle + \". Requete, \" + $json._angle_requete + \". Sources candidates a evaluer, \" + JSON.stringify($json.results) + \". Pour chaque source, evalue les cinq criteres, 1 auteur identifie et qualifie, 2 contenu recent, 3 contenu sourcable, 4 document structure, 5 document accessible et confirmable. Retourne un JSON strict de la forme, {\\\"sources\\\":[{\\\"url\\\":\\\"...\\\",\\\"titre\\\":\\\"...\\\",\\\"criteres\\\":{\\\"c1\\\":\\\"rempli|partiel|manque\\\",\\\"c2\\\":\\\"...\\\",\\\"c3\\\":\\\"...\\\",\\\"c4\\\":\\\"...\\\",\\\"c5\\\":\\\"...\\\"},\\\"justifications\\\":{\\\"c1\\\":\\\"phrase si partiel ou manque, sinon vide\\\",\\\"c2\\\":\\\"...\\\",\\\"c3\\\":\\\"...\\\",\\\"c4\\\":\\\"...\\\",\\\"c5\\\":\\\"...\\\"},\\\"conservee\\\":true|false,\\\"raison_rejet\\\":\\\"si non conservee\\\",\\\"resume\\\":\\\"deux phrases\\\"}]}\"\n    }\n  ]\n}) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({\n  model: \"openai/gpt-oss-120b\",\n  temperature: 0,\n  response_format: { type: \"json_object\" },\n  messages: [\n    {\n      role: \"system\",\n      content: \"Tu es un evaluateur de sources de veille technique. Tu appliques strictement une grille de fiabilite en cinq criteres reprise du referentiel RNCP37827. Tu retournes exclusivement un JSON valide, sans texte autour. Bareme par critere, 'rempli', 'partiel', 'manque'. Une source est conservee si aucun critere n'est 'manque' ET si au plus deux criteres sont 'partiel'.\"\n    },\n    {\n      role: \"user\",\n      content: \"Angle de veille, \" + $json._angle_libelle + \". Requete, \" + $json._angle_requete + \". Sources candidates a evaluer, \" + JSON.stringify($json.results) + \". Pour chaque source, evalue les cinq criteres, 1 auteur identifie et qualifie, 2 contenu recent, 3 contenu sourcable, 4 document structure, 5 document accessible et confirmable. Retourne un JSON strict de la forme, {\\\"sources\\\":[{\\\"url\\\":\\\"...\\\",\\\"titre\\\":\\\"...\\\",\\\"criteres\\\":{\\\"c1\\\":\\\"rempli|partiel|manque\\\",\\\"c2\\\":\\\"...\\\",\\\"c3\\\":\\\"...\\\",\\\"c4\\\":\\\"...\\\",\\\"c5\\\":\\\"...\\\"},\\\"justifications\\\":{\\\"c1\\\":\\\"phrase si partiel ou manque, sinon vide\\\",\\\"c2\\\":\\\"...\\\",\\\"c3\\\":\\\"...\\\",\\\"c4\\\":\\\"...\\\",\\\"c5\\\":\\\"...\\\"},\\\"conservee\\\":true|false,\\\"raison_rejet\\\":\\\"si non conservee\\\",\\\"resume\\\":\\\"deux phrases\\\"}]}\"\n    }\n  ]\n}) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 65000
+            }
+          }
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1020,
+        820,
         0
       ],
       "id": "e793ce5d-dfd7-4f66-80b0-c429314bf7c6",
@@ -120,25 +127,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1240,
+        980,
         0
       ],
       "id": "0bf70d9a-e8b8-4bb1-a222-9b6015c0f823",
       "name": "Construire synthèse"
-    },
-    {
-      "parameters": {
-        "amount": 20
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        820,
-        0
-      ],
-      "id": "983e4be2-a1d1-405a-b246-3fd612069c75",
-      "name": "Wait",
-      "webhookId": "1b3753a1-a553-4a2d-9e4f-02756d118ef7"
     }
   ],
   "pinData": {},
@@ -191,17 +184,6 @@
       "main": [
         [
           {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait": {
-      "main": [
-        [
-          {
             "node": "Scoring Groq",
             "type": "main",
             "index": 0
@@ -214,7 +196,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "b727ccb5-5fc1-4f57-9a6e-8aafa3d0b395",
+  "versionId": "46cf793b-0a59-4334-b3ff-6f33bd72f6d8",
   "meta": {
     "instanceId": "fcc9b5f7edda914eb52a4f52d0052235e7147fbf46a40020b051efabe20d32f1"
   },
