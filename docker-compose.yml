@@ -13,7 +13,6 @@ services:
       - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=Europe/Paris
       - TZ=Europe/Paris
-      - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - N8N_RUNNERS_ENABLED=true
       - N8N_LOG_LEVEL=info
@@ -21,7 +20,6 @@ services:
       - N8N_VERSION_NOTIFICATIONS_ENABLED=false
     volumes:
       - n8n_data:/home/node/.n8n
-      - ${OBSIDIAN_VAULT_PATH}:/vault
     networks:
       - veille-network
 

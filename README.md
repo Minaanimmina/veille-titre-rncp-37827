@@ -69,10 +69,7 @@ La clé de chiffrement N8N est particulièrement sensible. Si elle est perdue, l
 cp .env.example .env
 ```
 
-Éditer `.env` et renseigner les deux variables.
-
-- `N8N_ENCRYPTION_KEY`, clé de chiffrement générée à l'étape précédente.
-- `OBSIDIAN_VAULT_PATH`, chemin absolu vers la racine du vault Obsidian sur la machine hôte.
+Éditer `.env` et renseigner la variable `N8N_ENCRYPTION_KEY`, clé de chiffrement générée à l'étape précédente.
 
 ### 4. Démarrer le conteneur
 
